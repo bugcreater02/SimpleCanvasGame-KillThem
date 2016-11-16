@@ -1,0 +1,1144 @@
+﻿<!DOCTYPE html>
+<html>
+
+<head>
+    <link rel="stylesheet" type="text/css" href="css/index.css">
+    <meta charset="utf-8">
+</head>
+
+<body>
+    <canvas id="backgroundCanvas" width="640" height="480"></canvas>
+    <canvas id="characterCanvas" width="640" height="480"></canvas>
+
+    <div id="mainDiv">
+        <div id="homeMenu">
+            <div id="logo">
+                <b> 简易横板过关游戏</b>
+            </div>
+            <button id="start">开始游戏</button>
+            <div id="readme">
+                <b> 方向键操作，空格发射子弹，ESC/M键打开菜单，R键重新开始</b>
+                <b> （注意：1、空中速度与起跳速度有关；2、方向键下↓为作弊直接传送到终点）</b>
+            </div>
+
+        </div>
+
+        <div id="pauseMenu">
+            <button id="backToGame">返回游戏</button>
+            <button class="restart">重新开始</button>
+            <button id="backToMenu">返回主页</button>
+        </div>
+
+        <div id="overMenu">
+            <div id="overMsg">
+                <b>GAMEOVER</b>
+            </div>
+            <button class="restart">不服再来</button>
+        </div>
+        <div id="clearMenu">
+            <div id="clearMsg">
+                <b>CLEAR</b>
+            </div>
+            <button class="restart">再玩一次</button>
+        </div>
+    </div>
+    <script>
+        function startGame() {
+            mainDiv.style.display = 'none'
+            characterCanvas.style.opacity = 1
+            backgroundCanvas.style.opacity = 1
+            Game.start()
+        }
+
+        function pauseGame() {
+            mainDiv.style.display = 'block'
+            homeMenu.style.display = 'none'
+            pauseMenu.style.display = 'block'
+            overMenu.style.display = 'none'
+            clearMenu.style.display = 'none'
+            characterCanvas.style.opacity = 0.7
+            backgroundCanvas.style.opacity = 0.7
+            Game.stop()
+        }
+
+        function backToGame() {
+            mainDiv.style.display = 'none'
+            homeMenu.style.display = 'none'
+            pauseMenu.style.display = 'none'
+            overMenu.style.display = 'none'
+            clearMenu.style.display = 'none'
+            characterCanvas.style.opacity = 1
+            backgroundCanvas.style.opacity = 1
+            Game.start()
+        }
+
+        function backToMenu() {
+            mainDiv.style.display = 'block'
+            homeMenu.style.display = 'block'
+            pauseMenu.style.display = 'none'
+            overMenu.style.display = 'none'
+            clearMenu.style.display = 'none'
+            characterCanvas.style.opacity = 0
+            backgroundCanvas.style.opacity = 1
+            Game.restart()
+            Game.stop()
+        }
+
+        function restartGame() {
+            mainDiv.style.display = 'none'
+            homeMenu.style.display = 'none'
+            pauseMenu.style.display = 'none'
+            overMenu.style.display = 'none'
+            clearMenu.style.display = 'none'
+            characterCanvas.style.opacity = 1
+            backgroundCanvas.style.opacity = 1
+            Game.restart()
+        }
+
+        function overGame() {
+            mainDiv.style.display = 'block'
+            homeMenu.style.display = 'none'
+            pauseMenu.style.display = 'none'
+            overMenu.style.display = 'block'
+            clearMenu.style.display = 'none'
+            characterCanvas.style.opacity = 0.5
+            backgroundCanvas.style.opacity = 0.7
+            Game.stop()
+        }
+        function clearGame(){
+            mainDiv.style.display = 'block'
+            homeMenu.style.display = 'none'
+            pauseMenu.style.display = 'none'
+            overMenu.style.display = 'none'
+            clearMenu.style.display = 'block'
+            characterCanvas.style.opacity = 0.5
+            backgroundCanvas.style.opacity = 0.7
+            Game.stop()
+        }
+        let mainDiv = document.querySelector('#mainDiv'),
+            homeMenu = document.querySelector('#homeMenu'),
+            pauseMenu = document.querySelector('#pauseMenu'),
+            overMenu = document.querySelector('#overMenu')
+
+        document.querySelector('#backToGame').addEventListener('click', backToGame)
+        document.querySelector('#backToMenu').addEventListener('click', backToMenu)
+        document.querySelector('#start').addEventListener('click', startGame);
+        
+[].forEach.call(document.querySelectorAll('.restart'), function(el) {
+
+  el.addEventListener("click", restartGame)
+})
+    </script>
+</body>
+<script type="text/javascript">
+    let Game = {
+        isRunning: false,
+        start: function() {
+            this.isRunning = true
+        },
+        stop: function() {
+            this.isRunning = false
+        },
+        restart: function() {
+            this.isRunning = true
+            this.initialization()
+        },
+        backToMenu: function() {
+
+        },
+        initialization: function() {
+            characters = []
+            mainCharacter = Character.createNew(['img/人类_1', 'img/人类_2'], [10, 0], 'me')
+            mainCharacter.shooting = false
+            endCharacter = Character.createNew(['img/终点'], [2580, 0], 'me')
+            endCharacter.classification = 'end'
+           Character.createNew(['img/敌人_1', 'img/敌人_2'], [2480, 0], 'enemy')
+            let portalCharacter = Character.createNew(['img/敌人_1', 'img/敌人_2'], [2300, 0], 'enemy')
+            portalCharacter.maxSpeed=0
+            
+            
+           Character.createNew(['img/敌人_1', 'img/敌人_2'], [600, 0], 'enemy')
+           Character.createNew(['img/敌人_1', 'img/敌人_2'], [650, 0], 'enemy')
+           Character.createNew(['img/敌人_1', 'img/敌人_2'], [1000, 0], 'enemy')
+           Character.createNew(['img/敌人_1', 'img/敌人_2'], [1400, 0], 'enemy')
+           Character.createNew(['img/敌人_1', 'img/敌人_2'], [1450, 0], 'enemy')
+           Character.createNew(['img/敌人_1', 'img/敌人_2'], [1750, 0], 'enemy').maxSpeed=0
+
+            bullets = []
+
+            items = []
+            let tempItems = [
+                [-10, 430, 300, 300],
+                [350, 430, 400, 300],
+                [800,360,30,30],
+                [900,360,30,30],
+                [990,360,30,30],
+                [1030,400,30,30],
+                [700,290,30,30],
+                [600,220,30,30],
+                [500,120,30,30],
+                [400,20,30,30],
+                [300,110,30,30],
+                [200,200,30,30],
+                [100,100,30,30],
+                [750,150,30,30],
+                [800,100,100,30],
+                [1250, 300, 40, 30],
+                [1450, 300, 40, 30],
+                [1350, 430, 900, 300],
+                [2250, 100, 800, 3000],
+                [2100,120,30,30],
+                [2070,150,30,30],
+                [2000,220,30,30],
+                [1820,290,180,30]
+            ]
+            items = items.concat(tempItems)
+
+            coordinates = {}
+            coordinates.halfscreen = GameSetting.screen.width / 2 - 1
+            coordinates.center = coordinates.halfscreen
+            coordinates.offset = 0
+            coordinates.end = getEndCoordinates(items)
+
+
+            items.push([-1, -1, 1, GameSetting.screen.height + 1])
+            items.push([
+                coordinates.end + coordinates.halfscreen + 2, -1, 1, GameSetting.screen.height + 1
+            ])
+            itemsAddWidth(items, 2)
+            addBorderCoordinate(items)
+            addClassification(items, 'item')
+        }
+
+    }
+    let GameSetting = {
+        screen: {
+            width: 640,
+            height: 480,
+            fps: 60
+        },
+        me: {
+            width: 25,
+            height: 50,
+            maxSpeed: 4,
+        },
+        end: {
+            width: 40,
+            height:80,
+            maxSpeed: 0,
+        },
+        enemy: {
+            width: 25,
+            height: 50,
+            rangeOfActivities: 250,
+            maxSpeed: 2
+        },
+
+        bullet: {
+            width: 7,
+            height: 5,
+            maxSpeed: 7
+        },
+        hitHeadRange: 0,
+        initialization: function() {
+            this.hitHeadRange = this.me.height / 10
+        },
+        changeImgSpeed: 0.1
+    }
+    GameSetting.initialization()
+
+    function count(o) {
+        let t = typeof o;
+        if (t == 'string') {
+            return o.length;
+        } else if (t == 'object') {
+            n = Object.getOwnPropertyNames(o).length
+            return n;
+        }
+        return false;
+    }
+
+</script>
+<script type="text/javascript">
+    function loadImageComplete(imageName, res) {
+        images.completeSum += 1
+        if (images.completeSum == (count(images) - 1)) {
+            res()
+        }
+    }
+
+    function loadImages(imagePaths) {
+        return new Promise(function(res, rej) {
+            for (let imagePath in imagePaths) {
+                imagePath = imagePaths[imagePath]
+                let imageName = imagePath.match(/([^\.]+)\./)[1]
+                images[imageName] = new Image()
+                images[imageName].src = imagePath
+                images[imageName].onload = function() {
+                    loadImageComplete(imageName, res)
+                }
+            }
+        })
+    }
+
+    function clearScreen() {
+        characterCanvasContext.clearRect(0, 0, GameSetting.screen.width, GameSetting.screen.height)
+    }
+
+    function createUI() {
+        return new Promise(function(res, rej) {
+            backgroundCanvasContext.globalAlpha = 0.85
+            backgroundCanvasContext.drawImage(images['img/background'], 0, 0, GameSetting.screen.width, GameSetting.screen.height)
+            res()
+        })
+    }
+
+
+
+
+
+
+
+    function createMap() {
+        return new Promise(function(res, rej) {
+
+            for (let i in items) {
+                let item = items[i]
+                drawCanvasImg(item)
+            }
+            res()
+        })
+    }
+
+    function drawCanvasImg(item) {
+        if (item.classification == 'character' || item.classification == 'bullet' || item.classification == 'end') {
+            
+            let img = images[item.realImg],
+                x = item.coordinate.x - coordinates.offset,
+                y = item.coordinate.y,
+                width = item.width,
+                height = item.height
+            if (item.watchDirection != 'left') {
+                if( item.classification == 'end'){
+            }
+                characterCanvasContext.drawImage(img, x, y, width, height)
+            } else {
+                characterCanvasContext.translate(characterCanvas.width, 0)
+                characterCanvasContext.scale(-1, 1)
+                characterCanvasContext.drawImage(img, characterCanvas.width - width - x, y, width, height)
+                characterCanvasContext.translate(characterCanvas.width, 0)
+                characterCanvasContext.scale(-1, 1)
+
+            }
+        }
+        else if (item.classification == 'item') {
+            let x = item[0] - coordinates.offset,
+                y = item[1],
+                a = item[2],
+                b = item[3],
+                linewidth = item[4]
+            characterCanvasContext.lineWidth = linewidth
+            characterCanvasContext.strokeRect(x, y, a, b)
+        }
+        else if (item.classification == 'end') {
+            
+        }
+    }
+
+    function drawCharacter() {
+        return new Promise(function(res, rej) {
+            for (let i in characters) {
+                let character = characters[i]
+                character.updateImg()
+                drawCanvasImg(character)
+            }
+            for (let i in bullets) {
+                let bullet = bullets[i]
+                drawCanvasImg(bullet)
+            }
+            res()
+        })
+    }
+
+    function runAI() {
+        for (let i in characters) {
+            let character = characters[i]
+            if (character.faction == 'enemy') {
+                let rangeOfActivities = GameSetting.enemy.rangeOfActivities,
+                    distance = character.coordinate.x - mainCharacter.coordinate.x,
+                    distanceAbs = Math.abs(distance)
+                if (distanceAbs > rangeOfActivities) {
+                    if (!character.nextPosition) {
+                        character.nextPosition = character.coordinate.x + Math.floor(Math.random() * rangeOfActivities * Math.pow(-1, Math.floor(Math.random() * 2)))
+                    }
+                }
+
+                else {
+                    character.catchEnemy = true
+                    if (mainCharacter.isInTheAir) {
+                        if (distance >= 0) {
+                            character.nextPosition = mainCharacter.coordinate.x + 70
+                            character.watchDirection = 'left'
+                        } else {
+                            character.nextPosition = mainCharacter.coordinate.x - 70
+                            character.watchDirection = 'right'
+                        }
+                    } else {
+                        character.nextPosition = mainCharacter.coordinate.x
+                    }
+                }
+
+                if (character.nextPosition) {
+                    if (character.coordinate.x != character.nextPosition) {
+                        distance = character.nextPosition - character.coordinate.x
+                        let direction
+                        if (distance > 0) {
+                            direction = 'right'
+                        } else {
+                            direction = 'left'
+                        }
+                        character.wantDirection = direction
+                        if (!mainCharacter.isInTheAir) {
+                            character.watchDirection = direction
+                        }
+                        if (character.catchEnemy) {
+                            character.shoot()
+                        }
+                    }
+                    else {
+                        character.nextPosition = undefined
+                        character.wantDirection = undefined
+                        character.moveDirection = undefined
+                    }
+                }
+            }
+
+            if (character.isInTheAir) {
+                if (character.wantDirection) {
+                    if (character.inAirSpeed <= 1) {
+                        character.moveDirection = character.wantDirection
+                    }
+                    if (character.moveDirection == character.wantDirection) {
+                        if (character.inAirSpeed < character.maxSpeed) {
+                            character.inAirSpeed = Number(character.inAirSpeed.toFixed(1)) + 0.1
+                        }
+                    } else {
+                        character.inAirSpeed = Number(character.inAirSpeed.toFixed(1)) - 0.2
+                    }
+                } else {
+                    character.inAirSpeed -= 0.01
+                }
+            }
+            else {
+                character.moveDirection = character.wantDirection
+            }
+
+            if (character.moveDirection) {
+                let moveRange = checkRange(character, character.moveDirection)
+                if (moveRange == 0 && character.isInTheAir) {
+                    character.inAirSpeed = 0.90
+                }
+                if (character.nextPosition) {
+                    if (moveRange != 0 && !checkDown(character)) {
+                        let distanceAbs = Math.abs(character.nextPosition - character.coordinate.x)
+                        if (distanceAbs < moveRange) {
+                            moveRange = distanceAbs
+                        }
+                    }
+                    else {
+                        character.nextPosition = undefined
+                        character.wantDirection = undefined
+                        character.moveDirection = undefined
+                    }
+                }
+                character.move(character.moveDirection, moveRange)
+            }
+        }
+        for (let i in bullets) {
+            let bullet = bullets[i]
+            bullet.move(bullet.moveDirection, bullet.maxSpeed)
+        }
+    }
+
+    function runKeySystem() {
+        if (inputCodes['left'] && !inputCodes['right']) {
+            mainCharacter.wantDirection = 'left'
+            mainCharacter.watchDirection = 'left'
+        } else if (inputCodes['right'] && !inputCodes['left']) {
+            mainCharacter.wantDirection = 'right'
+            mainCharacter.watchDirection = 'right'
+        } else {
+            mainCharacter.wantDirection = undefined
+        }
+
+
+        if (inputCodes['up']) {
+            if (!mainCharacter.isInTheAir) {
+                mainCharacter.jump()
+            }
+        }
+        if (inputCodes['down']) {
+            mainCharacter.coordinate.x = 2580
+            mainCharacter.coordinate.y = -100
+        }
+        if (inputCodes['space']) {
+            mainCharacter.shoot()
+        }
+
+    }
+    function checkEnd(){
+        characterCanvasContext.drawImage(images['img/终点'],200,200,60,120)
+        characterCanvasContext.drawImage(images['img/人类_1'],50,50,60,120)
+        if(count(checkTouchingPlace(mainCharacter,endCharacter))){
+            clearGame()
+        }
+    }
+    function checkDown(character) {
+        if (character.faction != 'me') {
+            if (character.moveDirection == 'left') {
+                character.coordinate.x -= 5
+                character.updateBorderCoordinate()
+                if (checkRange(character, 'bottom') != 0) {
+                    character.coordinate.x += 5
+                    character.updateBorderCoordinate()
+                    return true
+                }
+                character.coordinate.x += 5
+                character.updateBorderCoordinate()
+            } else if (character.moveDirection == 'right') {
+                character.coordinate.x += 5
+                character.updateBorderCoordinate()
+                if (checkRange(character, 'bottom') != 0) {
+                    character.coordinate.x -= 5
+                    character.updateBorderCoordinate()
+                    return true
+                }
+                character.coordinate.x -= 5
+                character.updateBorderCoordinate()
+            }
+        }
+        return false
+    }
+
+
+    function checkRange(character, direction) {
+        let maxOffset = character.inAirSpeed ? character.inAirSpeed : character.maxSpeed
+
+        if (direction == 'top' || direction == 'bottom') {
+            maxOffset = 5 
+        }
+        let offset
+        for (offset = 1; offset <= maxOffset; ++offset) {
+            for (let j in items) {
+                let item = items[j]
+                let left = character.borderCoordinate.left,
+                    right = character.borderCoordinate.right,
+                    top = character.borderCoordinate.top,
+                    bottom = character.borderCoordinate.bottom
+
+
+                switch (direction) {
+                    case 'left':
+                        left -= offset
+                        right -= offset
+                        if (top <= item.borderCoordinate.bottom &&
+                            bottom >= item.borderCoordinate.top &&
+                            left <= item.borderCoordinate.right &&
+                            right >= item.borderCoordinate.left) {
+                            return offset - 1
+                        }
+                        break
+                    case 'right':
+                        left += offset
+                        right += offset
+                        if (top <= item.borderCoordinate.bottom &&
+                            bottom >= item.borderCoordinate.top &&
+                            left <= item.borderCoordinate.right &&
+                            right >= item.borderCoordinate.left) {
+                            return offset - 1
+                        }
+                        break
+                    case 'top':
+                        top -= offset
+                        bottom -= offset
+                        if (left <= item.borderCoordinate.right &&
+                            right >= item.borderCoordinate.left &&
+                            bottom >= item.borderCoordinate.top &&
+                            top <= item.borderCoordinate.bottom) {
+                            return offset - 1
+                        }
+                        break
+                    case 'bottom':
+                        top += offset
+                        bottom += offset
+                        if (left <= item.borderCoordinate.right &&
+                            right >= item.borderCoordinate.left &&
+                            bottom >= item.borderCoordinate.top &&
+                            top <= item.borderCoordinate.bottom) {
+                            return offset - 1
+                        }
+                        break
+                }
+            }
+        }
+        return offset - 1
+
+    }
+
+    function runGravitySystem() {
+        for (let i in characters) {
+            let character = characters[i]
+
+            if (character.gravity == -1) {
+                let moveRange = checkRange(character, 'bottom')
+                character.move('bottom', moveRange)
+                if (moveRange == 0) {
+                    character.stopJump()
+                } else {
+                    character.landing()
+                }
+            }
+            else if (character.gravity == 1) {
+                let moveRange = checkRange(character, 'top')
+                character.move('top', moveRange)
+                if (moveRange == 0) {
+                    character.landing()
+                }
+            }
+
+            if (character.gravity != -1) {
+                if (character.jumpTime == 5) {
+                    character.gravity = 0
+                }
+                if (character.jumpTime > 0) {
+                    character.jumpTime -= 1
+                } else {
+                    character.gravity = -1
+                }
+            }
+
+        }
+    }
+
+    function checkTouchingPlace(characterA, characterB) {
+        let touchingPlace = {}
+        let aLeft = characterA.borderCoordinate.left,
+            aRight = characterA.borderCoordinate.right,
+            aTop = characterA.borderCoordinate.top,
+            aBottom = characterA.borderCoordinate.bottom,
+            bLeft = characterB.borderCoordinate.left,
+            bRight = characterB.borderCoordinate.right,
+            bTop = characterB.borderCoordinate.top,
+            bBottom = characterB.borderCoordinate.bottom
+        if (characterA != characterB) {
+            if (
+                aTop <= bBottom &&
+                aBottom >= bTop
+            ) {
+                if (aLeft <= bRight &&
+                    aLeft >= bLeft) {
+                    touchingPlace.left = true
+                }
+                if (aRight <= bRight &&
+                    aRight >= bLeft) {
+                    touchingPlace.right = true
+                }
+            }
+
+            if (
+                aLeft <= bRight &&
+                aRight >= bLeft
+            ) {
+                if (aTop >= bBottom &&
+                    aTop <= bTop
+                ) {
+                    touchingPlace.top = true
+                }
+                if (aBottom >= bTop &&
+                    aBottom < bBottom) {
+                    touchingPlace.bottom = true
+                }
+            }
+        }
+        return touchingPlace
+    }
+
+    function runCollisionSystem() {
+        for (let i in characters) {
+            let a = characters[i]
+            if (a.coordinate.y > GameSetting.screen.height) {
+                a.die()
+                break
+            }
+            for (let direction in a.canMoveTo) {
+                a.canMoveTo[direction] = true
+            }
+            for (let j in characters) {
+                let b = characters[j]
+                let touchingPlace = checkTouchingPlace(a, b)
+
+                if (count(touchingPlace)) {
+                    if (a.faction == 'me' && a.classification!='end') {
+                        if (b.faction == 'enemy') {
+                            if (touchingPlace['bottom'] && (a.coordinate.y + a.height - GameSetting.hitHeadRange) <= b.coordinate.y) {
+                                a.canJump = true
+                                a.jump()
+                                b.die()
+                            } else {
+                                a.die()
+                            }
+                        }
+                            
+
+                    } else if (b.faction == 'enemy') {
+                        for (let direction in touchingPlace) {
+                            a.canMoveTo[direction] = false
+                            if (direction == a.wantDirection) {
+                                a.nextPosition = undefined
+                                a.wantDirection = undefined
+                                a.moveDirection = undefined
+                            }
+                        }
+                    }
+                }
+                
+            }
+        }
+
+        for (let i in bullets) {
+            let bullet = bullets[i]
+            for (let j in characters) {
+                if (bullet) {
+                    let character = characters[j]
+                    let touchingPlace = checkTouchingPlace(character, bullet)
+                    if (count(touchingPlace)) {
+                        if (character.faction != bullet.faction) {
+                            if(character.classification != 'end'){
+                            character.die()
+                            bullet.die()
+                            }
+                        }
+                    }
+                }
+            }
+            if (!bullet) {
+                break
+            }
+            for (let j in items) {
+                let item = items[j]
+                let touchingPlace = checkTouchingPlace(bullet, item)
+                if (count(touchingPlace)) {
+                    bullet.die()
+                    break
+                }
+            }
+            for (let j in bullets) {
+                let bulletB = bullets[j]
+                if (bullet != bulletB) {
+                    if (count(checkTouchingPlace(bullet, bulletB))) {
+                        if (bullet.faction != bulletB.faction) {
+                            bullet.die()
+                            bulletB.die()
+                            break
+                        }
+                    }
+                }
+            }
+            if (Math.abs(bullet.coordinate.x - coordinates.center) > GameSetting.screen.width / 2) {
+                bullet.die()
+            }
+
+        }
+    }
+
+    function updateMap() {
+        runControlKeySystem()
+        if (Game.isRunning) {
+            if (mainCharacter.coordinate.x > coordinates.halfscreen) {
+                coordinates.center = mainCharacter.coordinate.x
+            }
+
+            updateOffset()
+
+            runGravitySystem()
+
+            runKeySystem()
+            runAI()
+            runCollisionSystem()
+            checkEnd()
+            clearScreen()
+            createMap()
+            drawCharacter()
+        }
+
+
+        setTimeout(updateMap, 1000 / GameSetting.screen.fps)
+    }
+
+    function addClassification(items, classification) {
+        if (items.length == undefined) {
+            items.classification = classification
+        } else {
+            for (let i in items) {
+                items[i].classification = classification
+            }
+        }
+    }
+
+    function updateOffset() {
+        if (coordinates.center > coordinates.halfscreen) {
+            if (coordinates.center < coordinates.end) {
+                coordinates.offset = coordinates.center - coordinates.halfscreen
+            }
+        }
+    }
+
+</script>
+<script type="text/javascript">
+    let controlCode = {
+        27: 'esc',
+        32: 'space',
+        82: 'r',
+        77: 'm',
+        38: 'up',
+        40: 'down',
+        37: 'left',
+        39: 'right'
+    }
+    let inputCodes = {}
+    for (let i in controlCode) {
+        inputCodes[controlCode[i]] = false
+    }
+
+
+    function changeKeyCode(state, keyCode) {
+
+        if (!controlCode[keyCode]) {
+            return
+        }
+        let inputCode = controlCode[keyCode]
+        if (state == 'down') {
+            inputCodes[inputCode] = true
+        } else if (state == 'up') {
+            inputCodes[inputCode] = false
+        }
+    }
+
+    document.body.onkeydown = function(e) {
+        changeKeyCode("down", e.keyCode)
+    }
+    document.body.onkeyup = function(e) {
+        changeKeyCode("up", e.keyCode)
+    }
+
+    function runControlKeySystem() {
+        if (inputCodes['esc']) {
+            pauseGame()
+        }
+        if (inputCodes['r']) {
+            restartGame()
+        }
+        if (inputCodes['m']) {
+            pauseGame()
+        }
+
+    }
+
+    function getEndCoordinates(items) {
+        let temp = 0,
+            max = 0
+        for (let i in items) {
+            temp = items[i][0] + items[i][2]
+            max = temp > max ? temp : max
+        }
+        return (max - coordinates.halfscreen)
+    }
+
+    function addBorderCoordinate(items) {
+        for (let i in items) {
+            let item = items[i]
+            if (item.classification == 'character') {
+                let x = item.coordinate.x,
+                    y = item.coordinate.y,
+                    width = item.width,
+                    height = item.height
+                item.borderCoordinate = {
+                    left: x,
+                    right: x + width,
+                    top: y,
+                    bottom: y + height
+                }
+
+            }
+            else {
+                let linewidth = item[4],
+                    x = item[0],
+                    y = item[1],
+                    width = item[2],
+                    height = item[3]
+                item.borderCoordinate = {
+                    left: x - linewidth / 2,
+                    right: x + width + linewidth / 2,
+                    top: y - linewidth / 2,
+                    bottom: y + height + linewidth / 2
+                }
+            }
+        }
+
+    }
+
+</script>
+
+<script type="text/javascript">
+    let images = {}
+    images.completeSum = 0
+
+    let imagePaths = {
+        human: 'img/人类_1.png',
+        human_2: 'img/人类_2.png',
+        enemy_1: 'img/敌人_1.png',
+        enemy_2: 'img/敌人_2.png',
+        bullet: 'img/子弹.png',
+        enemy_bullet: 'img/敌人子弹.png',
+        background: 'img/background.png',
+        end:'img/终点.png'
+    }
+
+    function itemsAddWidth(items, width) {
+        for (let i in items) {
+            items[i].push(width)
+        }
+    }
+
+    let Bullet = {
+        createNew: function(imgPath, coordinate, moveDirection, faction, shooter, width, height) {
+            let bullet = {
+                imgPath: imgPath,
+                maxImgTime: 0,
+                realImg: {},
+                updateImg: function() {
+                    this.realImg = this.imgPath[0]
+                },
+                coordinate: {
+                    x: coordinate[0],
+                    y: coordinate[1]
+                },
+                width: width ? width : GameSetting.bullet.width,
+                height: height ? height : GameSetting.bullet.height,
+                faction: faction, 
+                classification: 'bullet',
+                moveDirection: moveDirection,
+                maxSpeed: GameSetting.bullet.maxSpeed,
+                borderCoordinate: {
+                    left: 0,
+                    right: 0,
+                    top: 0,
+                    bottom: 0
+                },
+                updateBorderCoordinate: function() {
+                    this.borderCoordinate.left = this.coordinate.x
+                    this.borderCoordinate.right = this.coordinate.x + this.width
+                    this.borderCoordinate.top = this.coordinate.y
+                    this.borderCoordinate.bottom = this.coordinate.y + this.height
+                },
+                move: function(direction, moveRange) {
+                    switch (direction) {
+                        case 'left':
+                            this.coordinate.x -= moveRange
+                            break
+                        case 'right':
+                            this.coordinate.x += moveRange
+                            break
+                        case 'top':
+                            this.coordinate.y -= moveRange
+                            break
+                        case 'bottom':
+                            this.coordinate.y += moveRange
+                            break
+                    }
+                    this.updateBorderCoordinate()
+                },
+                shooter: shooter,
+                die: function() {
+                    let index = bullets.indexOf(this)
+                    if (index > -1) {
+                        bullets.splice(index, 1)
+                        this.shooter.shooting = false
+                    }
+                }
+            }
+            bullet.updateImg()
+            bullet.updateBorderCoordinate()
+            bullets.push(bullet)
+            return bullet
+        }
+    }
+    let Character = {
+        createNew: function(imgPath, coordinate, faction, width, height) {
+            let character = {
+                imgPath: imgPath,
+                imageTime: 0,
+                maxImageTime: 0,
+                realImg: {},
+                updateImg: function() {
+                    this.maxImageTime = count(imgPath) - 1
+                    if ((this.imageTime + GameSetting.changeImgSpeed) >= this.maxImageTime) {
+                        this.imageTime = 0
+                    } else if (this.moveDirection && !this.isInTheAir) {
+                        this.imageTime += GameSetting.changeImgSpeed
+                    }
+                    let imageTime = Math.floor(this.imageTime)
+                    this.realImg = this.imgPath[imageTime]
+                },
+                width: width ? width : GameSetting[faction].width,
+                height: height ? height : GameSetting[faction].height,
+                faction: faction,
+                classification: 'character',
+                gravity: -1,
+                canJump: 0,
+                jumpTime: 0,
+                jump: function() {
+                    if (this.canJump) {
+                        this.inTheAir(true)
+                        this.gravity = 1
+                        this.jumpTime = 30
+                        if (this.moveDirection) {
+                            this.inAirSpeed = this.maxSpeed
+                        } else {
+                            this.inAirSpeed = 0
+                        }
+                    }
+                },
+                landing: function() {
+                    this.inTheAir(true)
+                    this.gravity == -1
+                    this.jumpTime = 0
+                },
+                stopJump: function() {
+                    this.inAirSpeed = 0
+                    this.inTheAir(false)
+                },
+                isInTheAir: 1,
+                inTheAir: function(yes) {
+                    if (yes) {
+                        this.canJump = 0
+                        this.isInTheAir = 1
+                    } else {
+                        this.canJump = 1
+                        this.isInTheAir = 0
+                    }
+                },
+                coordinate: {
+                    x: coordinate[0],
+                    y: coordinate[1]
+                },
+                shoot: function() {
+                    let coordinate = [0, this.coordinate.y + this.height / 2],
+                        moveDirection = this.watchDirection,
+                        faction = this.faction
+                    if (this.watchDirection == 'right') {
+                        coordinate[0] = this.borderCoordinate.right + 1
+                    } else {
+                        coordinate[0] = this.borderCoordinate.left - 1
+                    }
+                    if (!this.shooting) {
+                        let img = []
+                        if (this.faction == 'me') {
+                            img = ['img/子弹']
+                        } else if (this.faction == 'enemy') {
+                            img = ['img/敌人子弹']
+                        }
+                        Bullet.createNew(img, coordinate, moveDirection, faction, this)
+                        this.shooting = true
+                    }
+                },
+                shooting: false,
+                wantDirection: undefined,
+                watchDirection: 'right',
+                moveDirection: undefined,
+                nextPosition: undefined,
+                catchEnemy: false,
+                maxSpeed: GameSetting[faction].maxSpeed,
+                inAirSpeed: 0,
+                borderCoordinate: {
+                    left: 0,
+                    right: 0,
+                    top: 0,
+                    bottom: 0
+                },
+                canMoveTo: {
+                    left: true,
+                    right: true,
+                    top: true,
+                    bottom: true
+                },
+                move: function(direction, moveRange) {
+                    if (this.canMoveTo[direction]) {
+                        switch (direction) {
+                            case 'left':
+                                this.coordinate.x -= moveRange
+                                break
+                            case 'right':
+
+                                this.coordinate.x += moveRange
+                                break
+                            case 'top':
+                                this.coordinate.y -= moveRange
+                                break
+                            case 'bottom':
+                                this.coordinate.y += moveRange
+                                break
+                        }
+                        this.updateBorderCoordinate()
+                    }
+                },
+                updateBorderCoordinate: function() {
+                    this.borderCoordinate.left = this.coordinate.x
+                    this.borderCoordinate.right = this.coordinate.x + this.width
+                    this.borderCoordinate.top = this.coordinate.y
+                    this.borderCoordinate.bottom = this.coordinate.y + this.height
+                },
+
+
+                inertia: {
+                    maxSpeed: 0
+                },
+                die: function() {
+                    if (this == mainCharacter) {
+                        overGame()
+                    } else {
+                        let index = characters.indexOf(this)
+                        if (index > -1) {
+                            characters.splice(index, 1)
+                        }
+                    }
+                }
+
+
+            }
+            character.updateImg()
+            character.updateBorderCoordinate()
+            characters.push(character)
+            return character
+        }
+    }
+
+    let backgroundCanvas = document.querySelector('#backgroundCanvas')
+    let characterCanvas = document.querySelector('#characterCanvas')
+    let backgroundCanvasContext = backgroundCanvas.getContext('2d')
+    let characterCanvasContext = characterCanvas.getContext('2d')
+
+</script>
+<script type="text/javascript">
+    Game.initialization()
+    Promise.resolve(imagePaths).then(
+        loadImages
+    ).then(
+        createUI
+    ).then(
+        updateMap
+    )
+
+</script>
+
+</html>
